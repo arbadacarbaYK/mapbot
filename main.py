@@ -1,9 +1,14 @@
+import os
 import requests
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
-# Replace 'YOUR_BOT_TOKEN' with your actual Telegram bot token
-TOKEN = 'YOUR_BOT_TOKEN'
+# Retrieve the Telegram bot token from the environment variable
+TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+
+# Ensure the token is set
+if not TOKEN:
+    raise ValueError("Telegram bot token not provided. Make sure to set the 'TELEGRAM_BOT_TOKEN' environment variable.")
 
 # Dictionary to store user preferences (countries)
 user_preferences = {}
@@ -52,7 +57,7 @@ def country_choice(update: Update, context: CallbackContext) -> None:
     return ConversationHandler.END
 
 def poll_api(context: CallbackContext) -> None:
-    user_id = context.job.context.get('user_id')
+    user_id = context.job.context['user_id']
 
     # Make a request to the API
     response = requests.get('https://api.btcmap.org/v2/elements?updated_since=2024-01-30T13:51:29.268Z&limit=5000')
