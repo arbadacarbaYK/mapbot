@@ -70,7 +70,7 @@ def country_choice(update: Update, context: CallbackContext) -> None:
         user_preferences[user_id] = {'country': text}
 
         # Inform the user about their choice
-        update.message.reply_text(f'Your preferred country is set to: {text}', reply_markup=ReplyKeyboardRemove())
+        update.message.reply_text('Please choose a valid country:', reply_markup=ReplyKeyboardMarkup([countries], one_time_keyboard=True, resize_keyboard=True))
 
         # Call the function to poll the API with the user's preference
         context.job_queue.run_repeating(poll_api, interval=600, first=0, context={'user_id': user_id})
@@ -101,7 +101,8 @@ def format_entry_message(entry: dict) -> str:
     country_code = entry.get('phone', '').split(' ')[0]
 
     # Determine the country based on the country code
-    country = 'Portugal' if country_code == '+351' else 'Spain' if country_code == '+34' else 'Czech Republic' if country_code == '+420' else 'Great Britain' if country_code == '+44' else 'Ireland' if country_code == '+353' else 'Netherlands' if country_code == '+31' else 'Germany' if country_code == '+49' else 'Unknown'
+    country_codes = {'+351': 'Portugal', '+34': 'Spain', '+420': 'Czech Republic', '+44': 'Great Britain', '+353': 'Ireland', '+31': 'Netherlands', '+49': 'Germany'}
+    country = country_codes.get(country_code, 'Unknown')
 
     # Extract currency, lightning, android icon, and service information
     currency_xbt = entry.get('currency:XBT', 'no') == 'yes'
