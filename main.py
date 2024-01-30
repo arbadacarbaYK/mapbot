@@ -52,7 +52,7 @@ def country_choice(update: Update, context: CallbackContext) -> None:
     return ConversationHandler.END
 
 def poll_api(context: CallbackContext) -> None:
-    user_id = context.job.context['user_id']
+    user_id = context.job.context.get('user_id')
 
     # Make a request to the API
     response = requests.get('https://api.btcmap.org/v2/elements?updated_since=2024-01-30T13:51:29.268Z&limit=5000')
