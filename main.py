@@ -114,3 +114,21 @@ def format_entry_message(entry: dict) -> str:
     message = f"Name: {name}\nCity: {city}\nCountry: {country}\nCurrency: {currency_symbol}\nLightning: {lightning_symbol}\nAndroid Icon: {android_icon}\nService: {service}"
 
     return message
+
+if __name__ == '__main__':
+    updater = Updater(token=TOKEN, use_context=True)
+    dp = updater.dispatcher
+
+    # Set up a conversation handler
+    COUNTRY_CHOICE = 1
+    country_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            COUNTRY_CHOICE: [MessageHandler(Filters.text & ~Filters.command, country_choice)]
+        },
+        fallbacks=[]
+    )
+    dp.add_handler(country_handler)
+
+    updater.start_polling()
+    updater.idle()
