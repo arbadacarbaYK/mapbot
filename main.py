@@ -2,6 +2,7 @@ import os
 import requests
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
+import datetime
 
 # Retrieve the Telegram bot token from the environment variable
 TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
@@ -11,6 +12,9 @@ user_preferences = {}
 
 # API endpoint
 API_URL = 'https://api.btcmap.org/v2/elements'
+
+# Initialize the last polled time with the current time
+last_polled_time = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
 def start(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
@@ -29,10 +33,14 @@ def start(update: Update, context: CallbackContext) -> None:
     return COUNTRY_CHOICE
 
 def poll_api(context: CallbackContext) -> None:
+    global last_polled_time
     user_id = context.job.context['user_id']
 
-    # Make a request to the API
-    response = requests.get('https://api.btcmap.org/v2/elements?updated_since=2024-01-30T13:51:29.268Z&limit=5000')
+    # Update the API URL with the last polled time
+    api_url = f'https://api.btcmap.org/v2/elements?updated_since={last_polled_time}&limit=5000'
+
+    # Make a request to the updated API URL
+    response = requests.get(api_url)
 
     if response.status_code == 200:
         # Parse the JSON response
@@ -44,6 +52,9 @@ def poll_api(context: CallbackContext) -> None:
 
         # Send the filtered entries to the user
         send_entries_to_telegram(user_id, filtered_entries)
+
+        # Update the last polled time with the current time
+        last_polled_time = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
     else:
         print(f"Failed to fetch data from the API. Status code: {response.status_code}")
@@ -61,14 +72,13 @@ def country_choice(update: Update, context: CallbackContext) -> None:
         update.message.reply_text(f'Your preferred country is set to: {text}', reply_markup=ReplyKeyboardRemove())
 
         # Call the function to poll the API with the user's preference
-        context.job_queue.run_repeating(poll_api, interval=3600, first=0, context={'user_id': user_id})
+        context.job_queue.run_repeating(poll_api, interval=600, first=0, context={'user_id': user_id})
     else:
         # Invalid choice, ask the user to choose again
         update.message.reply_text('Please choose a valid country:', reply_markup=ReplyKeyboardMarkup([['Netherlands', 'Germany']], one_time_keyboard=True))
 
     # End the conversation
     return ConversationHandler.END
-
 
 def send_entries_to_telegram(user_id: int, entries: list) -> None:
     # Initialize the Telegram bot
