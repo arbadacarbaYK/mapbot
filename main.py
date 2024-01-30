@@ -20,7 +20,7 @@ def start(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
 
     # Set up a custom keyboard with country options
-    countries_keyboard = [['Netherlands', 'Germany']]
+    countries_keyboard = [['Portugal', 'Spain', 'Czech Republic'], ['Great Britain', 'Ireland'], ['Netherlands', 'Germany']]
 
     # Display the keyboard to the user
     update.message.reply_text(
@@ -64,7 +64,8 @@ def country_choice(update: Update, context: CallbackContext) -> None:
     text = update.message.text
 
     # Check if the user has chosen a country
-    if text in ['Netherlands', 'Germany']:
+    countries = ['Portugal', 'Spain', 'Czech Republic', 'Great Britain', 'Ireland', 'Netherlands', 'Germany']
+    if text in countries:
         # Store the user's country preference
         user_preferences[user_id] = {'country': text}
 
@@ -75,7 +76,7 @@ def country_choice(update: Update, context: CallbackContext) -> None:
         context.job_queue.run_repeating(poll_api, interval=600, first=0, context={'user_id': user_id})
     else:
         # Invalid choice, ask the user to choose again
-        update.message.reply_text('Please choose a valid country:', reply_markup=ReplyKeyboardMarkup([['Netherlands', 'Germany']], one_time_keyboard=True))
+        update.message.reply_text('Please choose a valid country:', reply_markup=ReplyKeyboardMarkup([countries], one_time_keyboard=True))
 
     # End the conversation
     return ConversationHandler.END
@@ -100,7 +101,7 @@ def format_entry_message(entry: dict) -> str:
     country_code = entry.get('phone', '').split(' ')[0]
 
     # Determine the country based on the country code
-    country = 'Netherlands' if country_code == '+31' else 'Germany' if country_code == '+49' else 'Unknown'
+    country = 'Portugal' if country_code == '+351' else 'Spain' if country_code == '+34' else 'Czech Republic' if country_code == '+420' else 'Great Britain' if country_code == '+44' else 'Ireland' if country_code == '+353' else 'Netherlands' if country_code == '+31' else 'Germany' if country_code == '+49' else 'Unknown'
 
     # Extract currency, lightning, android icon, and service information
     currency_xbt = entry.get('currency:XBT', 'no') == 'yes'
