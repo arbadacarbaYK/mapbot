@@ -6,10 +6,6 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 # Retrieve the Telegram bot token from the environment variable
 TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
-# Ensure the token is set
-if not TOKEN:
-    raise ValueError("Telegram bot token not provided. Make sure to set the 'TELEGRAM_BOT_TOKEN' environment variable.")
-
 # Dictionary to store user preferences (countries)
 user_preferences = {}
 
