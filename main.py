@@ -28,30 +28,6 @@ def start(update: Update, context: CallbackContext) -> None:
     context.user_data['waiting_for_country'] = True
     return COUNTRY_CHOICE
 
-def country_choice(update: Update, context: CallbackContext) -> None:
-    user_id = update.message.from_user.id
-    text = update.message.text
-
-    # Check if the user has chosen a country
-    if text in ['Netherlands', 'Germany']:
-        # Store the user's country preference
-        user_preferences[user_id] = {'country': text}
-
-        # Inform the user about their choice
-        update.message.reply_text(f'Your preferred country is set to: {text}', reply_markup=ReplyKeyboardRemove())
-
-        # Call the function to poll the API with the user's preference
-        poll_api(context, user_id)
-
-        # Set up polling interval to every 60 minutes (60 * 60 seconds)
-        context.job_queue.run_repeating(poll_api, interval=3600, first=0, context={'user_id': user_id})
-    else:
-        # Invalid choice, ask the user to choose again
-        update.message.reply_text('Please choose a valid country:', reply_markup=ReplyKeyboardMarkup([['Netherlands', 'Germany']], one_time_keyboard=True))
-
-    # End the conversation
-    return ConversationHandler.END
-
 def poll_api(context: CallbackContext) -> None:
     user_id = context.job.context['user_id']
 
@@ -72,12 +48,27 @@ def poll_api(context: CallbackContext) -> None:
     else:
         print(f"Failed to fetch data from the API. Status code: {response.status_code}")
 
-def is_entry_in_selected_country(entry: dict, user_country: str) -> bool:
-    # Extract the country code from the phone number
-    country_code = entry.get('phone', '').split(' ')[0]
+def country_choice(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id
+    text = update.message.text
 
-    # Check if the country code matches the user's preference
-    return country_code == '+31' if user_country == 'Netherlands' else country_code == '+49' if user_country == 'Germany' else False
+    # Check if the user has chosen a country
+    if text in ['Netherlands', 'Germany']:
+        # Store the user's country preference
+        user_preferences[user_id] = {'country': text}
+
+        # Inform the user about their choice
+        update.message.reply_text(f'Your preferred country is set to: {text}', reply_markup=ReplyKeyboardRemove())
+
+        # Call the function to poll the API with the user's preference
+        context.job_queue.run_repeating(poll_api, interval=3600, first=0, context={'user_id': user_id})
+    else:
+        # Invalid choice, ask the user to choose again
+        update.message.reply_text('Please choose a valid country:', reply_markup=ReplyKeyboardMarkup([['Netherlands', 'Germany']], one_time_keyboard=True))
+
+    # End the conversation
+    return ConversationHandler.END
+
 
 def send_entries_to_telegram(user_id: int, entries: list) -> None:
     # Initialize the Telegram bot
