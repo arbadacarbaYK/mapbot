@@ -14,7 +14,7 @@ user_preferences = {}
 API_URL = 'https://api.btcmap.org/v2/elements'
 
 # Initialize the last polled time with the current time
-last_polled_time = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+last_polled_time = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
 
 def start(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
